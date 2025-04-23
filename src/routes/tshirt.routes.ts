@@ -10,7 +10,7 @@ const fileService = new FileService();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024, // limite de 5MB
+    fileSize: 100 * 1024 * 1024, // limite de 100MB
   }
 });
 
@@ -127,6 +127,38 @@ router.get('/order/:checkoutId', async (req: Request, res: Response) => {
     } as TShirtOrderResponse);
   } catch (error) {
     console.error('Erro ao buscar pedido:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    } as TShirtOrderResponse);
+  }
+});
+
+// Route to delete all files from a checkout
+router.delete('/order/:checkoutId', async (req: Request, res: Response) => {
+  try {
+    const { checkoutId } = req.params;
+    const prefix = `custom-tshirt/${checkoutId}`;
+    
+    // Buscar dados do data.json para ter certeza que o checkout existe
+    const orderData = await fileService.getOrderData(prefix);
+    
+    if (!orderData) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pedido não encontrado'
+      } as TShirtOrderResponse);
+    }
+
+    // Excluir todos os arquivos do checkout
+    await fileService.deleteFilesByPrefix(prefix);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Todos os arquivos do pedido foram excluídos com sucesso'
+    } as TShirtOrderResponse);
+  } catch (error) {
+    console.error('Erro ao excluir arquivos do pedido:', error);
     return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor'

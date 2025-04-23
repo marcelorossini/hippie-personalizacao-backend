@@ -98,4 +98,17 @@ export class FileService {
       return null;
     }
   }
+
+  async deleteFilesByPrefix(prefix: string): Promise<void> {
+    try {
+      // Listar todos os arquivos com o prefixo
+      const files = await this.s3Service.listFiles(prefix);
+      
+      // Excluir cada arquivo
+      await Promise.all(files.map(file => this.s3Service.deleteFile(file)));
+    } catch (error) {
+      console.error('Erro ao excluir arquivos:', error);
+      throw error;
+    }
+  }
 } 

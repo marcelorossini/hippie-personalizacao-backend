@@ -1,4 +1,4 @@
-import { PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, BUCKET_NAME } from '../config/s3';
 
@@ -32,5 +32,14 @@ export class S3Service {
 
     const response = await s3Client.send(command);
     return response.Contents?.map(item => item.Key || '') || [];
+  }
+
+  async deleteFile(key: string): Promise<void> {
+    const command = new DeleteObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    });
+
+    await s3Client.send(command);
   }
 } 
