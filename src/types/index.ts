@@ -1,4 +1,4 @@
-export interface TShirtOrderFile extends Express.Multer.File {
+export interface TShirtOrderFile {
   path: string;
   url: string;
   thumbnail?: {
@@ -8,6 +8,7 @@ export interface TShirtOrderFile extends Express.Multer.File {
 }
 
 export interface TShirtOrder {
+  id: string;
   file: TShirtOrderFile;
   checkoutId: string;
   orderId: string;
@@ -24,12 +25,21 @@ export interface TShirtOrderResponse {
   };
 }
 
+export interface TShirtOrdersResponse {
+  success: boolean;
+  message: string;
+  data?: Array<TShirtOrder & {
+    files?: { key: string; url: string }[];
+    orderData?: OrderData;
+  }>;
+}
+
 export interface OrderData {
   checkoutId: string;
   orderId: string;
   userId: string;
   userEmail: string;
-  tshirts: {
+  tshirt: {
     file: string;
     fileUrl: string;
     thumbnail?: {
@@ -38,5 +48,5 @@ export interface OrderData {
     };
     size: string;
     color: string;
-  }[];
+  };
 } 

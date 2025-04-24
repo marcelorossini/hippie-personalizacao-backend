@@ -1,15 +1,16 @@
 import { S3Service } from './s3Service';
+import { DynamoService } from './dynamoService';
 import { Express } from 'express';
 import { OrderData } from '../types';
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { s3Client, BUCKET_NAME } from '../config/s3';
 import sharp from 'sharp';
 
 export class FileService {
   private s3Service: S3Service;
+  private dynamoService: DynamoService;
 
   constructor() {
     this.s3Service = new S3Service();
+    this.dynamoService = new DynamoService();
   }
 
   async uploadFile(file: Express.Multer.File, prefix: string = 'uploads'): Promise<{ key: string; url: string }> {
@@ -70,33 +71,14 @@ export class FileService {
     return filesWithUrls;
   }
 
-  async saveOrderData(prefix: string, data: OrderData): Promise<void> {
-    const key = `${prefix}/data.json`;
-    const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: JSON.stringify(data),
-      ContentType: 'application/json',
-    });
-
-    await s3Client.send(command);
+  async saveOrderData(prefix: string, data: OrderData): Promise<string> {
+    const checkoutId = prefix.split('/')[1]; // Extrair o checkoutId do prefix
+    return await this.dynamoService.saveOrderData(checkoutId, data);
   }
 
   async getOrderData(prefix: string): Promise<OrderData | null> {
-    try {
-      const key = `${prefix}/data.json`;
-      const command = new GetObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: key,
-      });
-
-      const response = await s3Client.send(command);
-      const data = await response.Body?.transformToString();
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error('Erro ao ler data.json:', error);
-      return null;
-    }
+    const checkoutId = prefix.split('/')[1]; // Extrair o checkoutId do prefix
+    return await this.dynamoService.getOrderData(checkoutId);
   }
 
   async deleteFilesByPrefix(prefix: string): Promise<void> {
@@ -106,6 +88,10 @@ export class FileService {
       
       // Excluir cada arquivo
       await Promise.all(files.map(file => this.s3Service.deleteFile(file)));
+
+      // Excluir dados do DynamoDB
+      const checkoutId = prefix.split('/')[1];
+      await this.dynamoService.deleteOrderData(checkoutId);
     } catch (error) {
       console.error('Erro ao excluir arquivos:', error);
       throw error;
