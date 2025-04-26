@@ -39,6 +39,7 @@ export interface OrderData {
   orderId: string;
   userId: string;
   userEmail: string;
+  originId: string;
   tshirt: {
     file: string;
     fileUrl: string;
@@ -49,4 +50,8 @@ export interface OrderData {
     size: string;
     color: string;
   };
+}
+
+export interface OrderDataWithId extends OrderData {
+  id: string;
 } 

@@ -56,28 +56,8 @@ export class FileService {
     }
   }
 
-  async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
-    return await this.s3Service.getSignedUrl(key, expiresIn);
-  }
-
-  async listFilesWithUrls(prefix: string): Promise<{ key: string; url: string }[]> {
-    const files = await this.s3Service.listFiles(prefix);
-    const filesWithUrls = await Promise.all(
-      files.map(async (key) => ({
-        key,
-        url: await this.s3Service.getSignedUrl(key)
-      }))
-    );
-    return filesWithUrls;
-  }
-
-  async saveOrderData(prefix: string, data: OrderData): Promise<string> {
-    const checkoutId = prefix.split('/')[1]; // Extrair o checkoutId do prefix
-    return await this.dynamoService.saveOrderData(checkoutId, data);
-  }
-
   async getOrderData(prefix: string): Promise<OrderData | null> {
-    const checkoutId = prefix.split('/')[1]; // Extrair o checkoutId do prefix
+    const checkoutId = prefix.split('/')[1];
     return await this.dynamoService.getOrderData(checkoutId);
   }
 

@@ -1,6 +1,6 @@
 import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand, UpdateCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { dynamoClient, TABLE_NAME } from '../config/dynamodb';
-import { OrderData } from '../types';
+import { OrderData, OrderDataWithId } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 export class DynamoService {
@@ -10,15 +10,14 @@ export class DynamoService {
     this.docClient = DynamoDBDocumentClient.from(dynamoClient);
   }
 
-  async saveOrderData(checkoutId: string, data: OrderData): Promise<string> {
-    const { checkoutId: _, ...orderData } = data;
+  async saveOrderData(data: OrderData): Promise<string> {
+    const { ...orderData } = data;
     const id = uuidv4();
     
     const command = new PutCommand({
       TableName: TABLE_NAME,
       Item: {
         id: id,
-        checkoutId,
         ...orderData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -29,7 +28,7 @@ export class DynamoService {
     return id;
   }
 
-  async getOrderData(id: string): Promise<OrderData | null> {
+  async getOrderData(id: string): Promise<OrderDataWithId | null> {
     try {
       const command = new GetCommand({
         TableName: TABLE_NAME,
@@ -39,14 +38,14 @@ export class DynamoService {
       });
 
       const response = await this.docClient.send(command);
-      return response.Item as OrderData || null;
+      return response.Item as OrderDataWithId || null;
     } catch (error) {
       console.error('Erro ao ler dados do pedido:', error);
       return null;
     }
   }
 
-  async getOrderByCheckoutId(checkoutId: string): Promise<OrderData | null> {
+  async getOrderByCheckoutId(checkoutId: string): Promise<OrderDataWithId | null> {
     try {
       const command = new GetCommand({
         TableName: TABLE_NAME,
@@ -56,7 +55,7 @@ export class DynamoService {
       });
 
       const response = await this.docClient.send(command);
-      return response.Item as OrderData || null;
+      return response.Item as OrderDataWithId || null;
     } catch (error) {
       console.error('Erro ao ler dados do pedido pelo checkoutId:', error);
       return null;
@@ -109,7 +108,7 @@ export class DynamoService {
     await this.docClient.send(command);
   }
 
-  async find(filters: Record<string, any>): Promise<OrderData[]> {
+  async find(filters: Record<string, any>): Promise<OrderDataWithId[]> {
     try {
       const filterExpressions: string[] = [];
       const expressionAttributeNames: Record<string, string> = {};
@@ -132,14 +131,14 @@ export class DynamoService {
       });
 
       const response = await this.docClient.send(command);
-      return (response.Items || []) as OrderData[];
+      return (response.Items || []) as OrderDataWithId[];
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       return [];
     }
   }
 
-  async findOne(filters: Record<string, any>): Promise<OrderData | null> {
+  async findOne(filters: Record<string, any>): Promise<OrderDataWithId | null> {
     const results = await this.find(filters);
     return results[0] || null;
   }
@@ -149,10 +148,23 @@ export class DynamoService {
       const items = await this.find(filters);
       
       for (const item of items) {
-        await this.updateOrderData(item.orderId, updateData);
+        await this.updateOrderData(item.id, updateData);
       }
     } catch (error) {
       console.error('Erro ao atualizar múltiplos pedidos:', error);
+      throw error;
+    }
+  }
+
+  async deleteMany(filters: Record<string, any>): Promise<void> {
+    try {
+      const items = await this.find(filters);
+      
+      for (const item of items) {
+        await this.deleteOrderData(item.id);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar múltiplos pedidos:', error);
       throw error;
     }
   }
