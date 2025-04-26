@@ -34,7 +34,7 @@ const upload = multer({
 router.post('/order', 
   uploadLimiter,
   upload.single('file'),
-  validateRequiredFields(['userId', 'userEmail', 'size', 'color', 'originId']),
+  validateRequiredFields(['userId', 'userEmail', 'size', 'color', 'checkoutId']),
   async (req: Request, res: Response) => {
     try {
       if (!req.file) {
