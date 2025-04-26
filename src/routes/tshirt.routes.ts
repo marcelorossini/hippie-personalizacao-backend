@@ -6,6 +6,7 @@ import { DynamoService } from '../services/dynamoService';
 import { validateRequiredFields } from '../middlewares/validateRequiredFields';
 import { sendSuccessResponse, sendErrorResponse, sendNotFoundResponse, sendBadRequestResponse } from '../utils/responseUtils';
 import { createFileObject, createOrderPrefix } from '../utils/fileUtils';
+import { uploadLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 const fileService = new FileService();
@@ -31,6 +32,7 @@ const upload = multer({
 
 // Route to create a new t-shirt order
 router.post('/order', 
+  uploadLimiter,
   upload.single('file'),
   validateRequiredFields(['userId', 'userEmail', 'size', 'color', 'originId']),
   async (req: Request, res: Response) => {
