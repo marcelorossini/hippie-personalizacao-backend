@@ -45,23 +45,6 @@ export class DynamoService {
     }
   }
 
-  async getOrderByCheckoutId(checkoutId: string): Promise<OrderDataWithId | null> {
-    try {
-      const command = new GetCommand({
-        TableName: TABLE_NAME,
-        Key: {
-          checkoutId,
-        },
-      });
-
-      const response = await this.docClient.send(command);
-      return response.Item as OrderDataWithId || null;
-    } catch (error) {
-      console.error('Erro ao ler dados do pedido pelo checkoutId:', error);
-      return null;
-    }
-  }
-
   async deleteOrderData(id: string): Promise<void> {
     const command = new DeleteCommand({
       TableName: TABLE_NAME,
@@ -80,7 +63,7 @@ export class DynamoService {
 
     // Prepara as expressões de atualização para cada campo fornecido
     Object.entries(updateData).forEach(([key, value]) => {
-      if (key !== 'checkoutId' && key !== 'id') {
+      if (key !== 'id') {
         const attributeName = `#${key}`;
         const attributeValue = `:${key}`;
         
