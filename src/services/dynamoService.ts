@@ -63,7 +63,7 @@ export class DynamoService {
 
     // Prepara as expressões de atualização para cada campo fornecido
     Object.entries(updateData).forEach(([key, value]) => {
-      if (key !== 'id') {
+      if (key !== 'id' && value !== undefined) {
         const attributeName = `#${key}`;
         const attributeValue = `:${key}`;
         
