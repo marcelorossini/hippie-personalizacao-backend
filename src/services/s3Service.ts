@@ -15,7 +15,7 @@ export class S3Service {
     return key;
   }
 
-  async getSignedUrl(key: string, expiresIn: number = 2592000): Promise<string> {
+  async getSignedUrl(key: string, expiresIn: number = 604800): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
