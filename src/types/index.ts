@@ -14,6 +14,7 @@ export interface TShirtOrder {
   orderId: string;
   userId: string;
   userEmail: string;
+  quantity: number;
 }
 
 export interface TShirtOrderResponse {
@@ -40,6 +41,7 @@ export interface OrderData {
   userId: string;
   userEmail: string;
   originId: string;
+  quantity: number;
   tshirt: {
     file: string;
     fileUrl: string;

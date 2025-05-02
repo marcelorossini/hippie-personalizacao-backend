@@ -34,14 +34,14 @@ const upload = multer({
 router.post('/order', 
   uploadLimiter,
   upload.single('file'),
-  validateRequiredFields(['userId', 'userEmail', 'size', 'color', 'checkoutId']),
+  validateRequiredFields(['userId', 'userEmail', 'size', 'color', 'checkoutId', 'quantity']),
   async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return sendBadRequestResponse(res, 'Nenhum arquivo foi enviado');
       }
 
-      const { checkoutId, orderId, userId, userEmail, size, color, originId } = req.body;
+      const { checkoutId, orderId, userId, userEmail, size, color, originId, quantity } = req.body;
 
       // Primeiro, salvar os dados do pedido para obter o ID
       const orderData: OrderData = {
@@ -50,6 +50,7 @@ router.post('/order',
         userId,
         userEmail,
         originId,
+        quantity,
         tshirt: {
           file: '', // Será atualizado depois
           fileUrl: '', // Será atualizado depois
@@ -93,7 +94,8 @@ router.post('/order',
         checkoutId,
         orderId,
         userId,
-        userEmail
+        userEmail,
+        quantity
       };
 
       return sendSuccessResponse(res, 'Pedido criado com sucesso', order, 201);
@@ -121,6 +123,7 @@ router.get('/order/:checkoutId', async (req: Request, res: Response) => {
       orderId: orderData.orderId,
       userId: orderData.userId,
       userEmail: orderData.userEmail,
+      quantity: orderData.quantity,
       orderData: orderData
     });
   } catch (error) {
@@ -202,6 +205,7 @@ router.get('/order/search/one', async (req: Request, res: Response) => {
       orderId: order.orderId,
       userId: order.userId,
       userEmail: order.userEmail,
+      quantity: order.quantity,
       orderData: order
     });
   } catch (error) {
@@ -232,6 +236,7 @@ router.get('/order/search/all', async (req: Request, res: Response) => {
         orderId: order.orderId,
         userId: order.userId,
         userEmail: order.userEmail,
+        quantity: order.quantity,
         orderData: order
       }))
     );
