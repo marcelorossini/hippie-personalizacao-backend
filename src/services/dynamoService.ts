@@ -98,11 +98,18 @@ export class DynamoService {
       const expressionAttributeValues: Record<string, any> = {};
 
       Object.entries(filters).forEach(([key, value], index) => {
-        const attributeName = `#${key}`;
-        const attributeValue = `:${key}`;
+        // Trata atributos aninhados (ex: tshirt.color)
+        const parts = key.split('.');
+        const attributeName = parts.map(part => `#${part}`).join('.');
+        const attributeValue = `:${key.replace(/\./g, '_')}`;
         
         filterExpressions.push(`${attributeName} = ${attributeValue}`);
-        expressionAttributeNames[attributeName] = key;
+        
+        // Adiciona os nomes dos atributos para cada parte do caminho
+        parts.forEach(part => {
+          expressionAttributeNames[`#${part}`] = part;
+        });
+        
         expressionAttributeValues[attributeValue] = value;
       });
 
