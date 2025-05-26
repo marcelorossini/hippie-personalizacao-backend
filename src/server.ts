@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import tshirtRoutes from './routes/tshirt.routes';
+import helpersRoutes from './routes/helpers.routes';
 import { globalLimiter, uploadLimiter } from './middlewares/rateLimiter';
 
 const app = express();
@@ -27,6 +28,7 @@ app.use('/uploads', uploadLimiter, express.static(path.join(__dirname, '../uploa
 
 // Routes
 app.use('/api/tshirt', tshirtRoutes);
+app.use('/api/helpers', helpersRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
