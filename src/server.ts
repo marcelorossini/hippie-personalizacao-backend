@@ -30,6 +30,11 @@ app.use('/uploads', uploadLimiter, express.static(path.join(__dirname, '../uploa
 app.use('/api/tshirt', tshirtRoutes);
 app.use('/api/helpers', helpersRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the API' });
+});
+
 // Health check route
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
