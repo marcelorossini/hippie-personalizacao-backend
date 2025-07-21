@@ -3,6 +3,7 @@ import { DynamoService } from './dynamoService';
 import { Express } from 'express';
 import { OrderData } from '../types';
 import sharp from 'sharp';
+import fs from 'fs/promises';
 
 export class FileService {
   private s3Service: S3Service;
@@ -15,9 +16,14 @@ export class FileService {
 
   async uploadFile(file: Express.Multer.File, prefix: string = 'uploads'): Promise<{ key: string; url: string }> {
     const key = `${prefix}/${Date.now()}-${file.originalname}`;
-    const uploadedKey = await this.s3Service.uploadFile(file, key);
+    // When using disk storage the file buffer might not be available
+    const buffer = file.buffer ?? await fs.readFile(file.path);
+    const uploadedKey = await this.s3Service.uploadFile({
+      ...file,
+      buffer
+    } as Express.Multer.File, key);
     const signedUrl = await this.s3Service.getSignedUrl(uploadedKey);
-    
+
     return { key: uploadedKey, url: signedUrl };
   }
 
@@ -29,8 +35,11 @@ export class FileService {
         return null;
       }
 
+      // Carregar o buffer a partir do arquivo em disco, caso necessário
+      const fileBuffer = file.buffer ?? await fs.readFile(file.path);
+
       // Criar thumbnail com Sharp e converter para PNG
-      const thumbnailBuffer = await sharp(file.buffer)
+      const thumbnailBuffer = await sharp(fileBuffer)
         .resize(200, 200, { fit: 'inside', withoutEnlargement: true })
         .png() // Converter para PNG
         .toBuffer();
