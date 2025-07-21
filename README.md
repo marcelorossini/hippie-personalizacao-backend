@@ -58,3 +58,7 @@ npm start
 ## File Storage
 
 Uploaded files are stored in the `uploads` directory and are served statically through the `/uploads` endpoint. 
+
+## Error Handling
+
+This server logs any `unhandledRejection` and `uncaughtException` events. Run `npm test` to confirm the handlers are registered and log errors without crashing.
