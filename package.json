@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "postinstall": "npm run build",
-    "start": "node -r dotenv/config dist/server.js",
+    "start": "pm2-runtime dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --require dotenv/config src/server.ts",
     "lint": "eslint . --ext .ts,.js",
     "test": "jest"
