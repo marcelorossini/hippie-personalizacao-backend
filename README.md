@@ -34,6 +34,9 @@ Production mode:
 npm run build
 npm start
 ```
+The `start` script uses [PM2](https://pm2.keymetrics.io/) to keep the
+server running continuously. Ensure PM2 is installed globally with
+`npm install -g pm2` or as a project dependency.
 
 ## API Endpoints
 
