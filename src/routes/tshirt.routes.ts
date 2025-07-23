@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
+import fs from 'fs';
 import { TShirtOrder, TShirtOrderResponse, TShirtOrdersResponse, TShirtOrderFile, OrderData } from '../types';
 import { FileService } from '../services/fileService';
 import { DynamoService } from '../services/dynamoService';
@@ -11,6 +12,7 @@ import { uploadLimiter } from '../middlewares/rateLimiter';
 const router = Router();
 const fileService = new FileService();
 const dynamoService = new DynamoService();
+fs.mkdirSync('tmp', { recursive: true });
 
 // Função utilitária para filtrar parâmetros vazios
 const filterEmptyParams = (query: Record<string, any>): Record<string, any> => {
@@ -22,9 +24,14 @@ const filterEmptyParams = (query: Record<string, any>): Record<string, any> => {
   }, {} as Record<string, any>);
 };
 
-// Configure multer for memory storage
+// Configure multer to use disk storage to avoid keeping large files in memory
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: 'tmp/',
+    filename: (_req, file, cb) => {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    },
+  }),
   limits: {
     fileSize: 100 * 1024 * 1024, // limite de 100MB
   }
@@ -87,6 +94,15 @@ router.post('/order',
 
       // Atualizar o data.json com as informações do arquivo
       await dynamoService.updateOrderData(id, updatedOrderData);
+
+      // Remover arquivo temporário após o processamento
+      if (req.file.path) {
+        try {
+          await fs.promises.unlink(req.file.path);
+        } catch (err) {
+          console.error('Erro ao remover arquivo temporário:', err);
+        }
+      }
 
       const order: TShirtOrder = {
         id,
