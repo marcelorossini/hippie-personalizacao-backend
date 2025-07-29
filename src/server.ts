@@ -6,6 +6,15 @@ import tshirtRoutes from './routes/tshirt.routes';
 import helpersRoutes from './routes/helpers.routes';
 import { globalLimiter, uploadLimiter } from './middlewares/rateLimiter';
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
 const app = express();
 const PORT = process.env.PORT || 4564;
 
@@ -41,6 +50,8 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});
+
+export default server;
